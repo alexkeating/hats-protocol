@@ -16,6 +16,7 @@
 
 pragma solidity >=0.8.13;
 
+import {console2} from "forge-std/console2.sol";
 import "./Interfaces/IHatsIdUtilities.sol";
 // import { console2 } from "forge-std/Test.sol"; //remove after testing
 
@@ -195,9 +196,12 @@ contract HatsIdUtilities is IHatsIdUtilities {
     /// @param _level the admin level of interest
     /// @return admin The hat id of the resulting admin
     function getAdminAtLocalLevel(uint256 _hatId, uint32 _level) public pure returns (uint256 admin) {
+		       console2.logString("HERE 31");
         uint256 mask = type(uint256).max << (LOWER_LEVEL_ADDRESS_SPACE * (MAX_LEVELS - _level));
+		       console2.logString("HERE 32");
 
         admin = _hatId & mask;
+		       console2.logString("HERE 33");
     }
 
     /// @notice Gets the tophat domain of a given hat

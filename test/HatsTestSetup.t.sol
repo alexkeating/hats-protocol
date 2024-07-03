@@ -83,8 +83,8 @@ abstract contract TestSetup is Test, TestVariables {
 
         // set variables: Hat parameters
         _maxSupply = 1;
-        _eligibility = address(555);
-        _toggle = address(333);
+        _eligibility = address(5555555555555);
+        _toggle = address(3333333333333);
 
         topHatImageURI = "http://www.tophat.com/";
         secondHatImageURI = "http://www.second.com/";

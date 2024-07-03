@@ -25,6 +25,7 @@ import "./Interfaces/IHatsEligibility.sol";
 import "solbase/utils/Base64.sol";
 import "solbase/utils/LibString.sol";
 import "solady/utils/Multicallable.sol";
+import {console2} from "forge-std/console2.sol";
 
 /// @title Hats Protocol v1
 /// @notice Hats are DAO-native, revocable, and programmable roles that are represented as non-transferable ERC-1155-similar tokens for composability
@@ -82,7 +83,7 @@ contract Hats is IHats, ERC1155, Multicallable, HatsIdUtilities {
     string public baseImageURI;
 
     /// @dev Internal mapping of hats to hat ids. See HatsIdUtilities.sol for more info on how hat ids work
-    mapping(uint256 => Hat) internal _hats; // key: hatId => value: Hat struct
+    mapping(uint256 => Hat) public _hats; // key: hatId => value: Hat struct
 
     /// @notice Mapping of wearers in bad standing for certain hats
     /// @dev Used by external contracts to trigger penalties for wearers in bad standing
@@ -245,13 +246,19 @@ contract Hats is IHats, ERC1155, Multicallable, HatsIdUtilities {
     /// @return success Whether the mint succeeded
     function mintHat(uint256 _hatId, address _wearer) public returns (bool success) {
         Hat storage hat = _hats[_hatId];
+		console2.logString("HERE");
         if (hat.maxSupply == 0) revert HatDoesNotExist(_hatId);
+		console2.logString("HERE 2");
         // only eligible wearers can receive minted hats
         if (!isEligible(_wearer, _hatId)) revert NotEligible();
+		console2.logString("HERE 3");
         // only active hats can be minted
         if (!_isActive(hat, _hatId)) revert HatNotActive();
+		console2.logString("HERE 4");
+		console2.logUint(_hatId);
         // only the wearer of one of a hat's admins can mint it
         _checkAdmin(_hatId);
+		console2.logString("HERE 5");
         // hat supply cannot exceed maxSupply
         if (hat.supply >= hat.maxSupply) revert AllHatsWorn(_hatId);
         // wearers cannot wear the same hat more than once
@@ -376,6 +383,9 @@ contract Hats is IHats, ERC1155, Multicallable, HatsIdUtilities {
         (bool success, bytes memory returndata) = _hats[_hatId].eligibility.staticcall(
             abi.encodeWithSignature("getWearerStatus(address,uint256)", _wearer, _hatId)
         );
+		console2.logBytes(returndata);
+		console2.logUint(returndata.length);
+		console2.logBool(success);
 
         /* 
         * if function call succeeds with data of length == 64, then we know the contract exists 
@@ -534,7 +544,9 @@ contract Hats is IHats, ERC1155, Multicallable, HatsIdUtilities {
 
     /// @notice Checks whether msg.sender is an admin of a hat, and reverts if not
     function _checkAdmin(uint256 _hatId) internal view {
+		console2.logString("HERE 12");
         if (!isAdminOfHat(msg.sender, _hatId)) {
+		console2.logString("HERE 13");
             revert NotAdmin(msg.sender, _hatId);
         }
     }
@@ -951,17 +963,22 @@ contract Hats is IHats, ERC1155, Multicallable, HatsIdUtilities {
     function isAdminOfHat(address _user, uint256 _hatId) public view returns (bool isAdmin) {
         uint256 linkedTreeAdmin;
         uint32 adminLocalHatLevel;
+		console2.logString("HERE 21");
         if (isLocalTopHat(_hatId)) {
+		    console2.logString("HERE 22");
             linkedTreeAdmin = linkedTreeAdmins[getTopHatDomain(_hatId)];
             if (linkedTreeAdmin == 0) {
+		      console2.logString("HERE 23");
                 // tree is not linked
                 return isAdmin = isWearerOfHat(_user, _hatId);
             } else {
                 // tree is linked
                 if (isWearerOfHat(_user, linkedTreeAdmin)) {
+		       console2.logString("HERE 24");
                     return isAdmin = true;
                 } // user wears the treeAdmin
                 else {
+		       console2.logString("HERE 25");
                     adminLocalHatLevel = getLocalHatLevel(linkedTreeAdmin);
                     _hatId = linkedTreeAdmin;
                 }
@@ -974,10 +991,14 @@ contract Hats is IHats, ERC1155, Multicallable, HatsIdUtilities {
 
         // search up _hatId's local address space for an admin hat that the _user wears
         while (adminLocalHatLevel > 0) {
+		       console2.logUint(_hatId);
+		       console2.logString("HERE 25.5");
             if (isWearerOfHat(_user, getAdminAtLocalLevel(_hatId, adminLocalHatLevel))) {
+		       console2.logString("HERE 26");
                 return isAdmin = true;
             }
             // should not underflow given stopping condition > 0
+		       console2.logString("HERE 27");
             unchecked {
                 --adminLocalHatLevel;
             }
@@ -1096,8 +1117,22 @@ contract Hats is IHats, ERC1155, Multicallable, HatsIdUtilities {
     /// @param _hatId The id of the Hat
     /// @return eligible Whether the wearer is eligible for the Hat
     function _isEligible(address _wearer, Hat storage _hat, uint256 _hatId) internal view returns (bool eligible) {
+		       console2.logString("HERE 41");
+		      // console2.logAddress(_hat.eligibility);
+			  // the hat is missing
+		      console2.logUint(_hat.maxSupply);
+		       console2.logAddress(_wearer);
+		       console2.logUint(_hatId);
+			   //   0x000000000000000000000000000000000000022b
+			   // 0x0000000000000000000000000000000000000001
+			   // 26960358043289970096177553829315270011263390106506980876069447401472
+
+
         (bool success, bytes memory returndata) =
             _hat.eligibility.staticcall(abi.encodeWithSignature("getWearerStatus(address,uint256)", _wearer, _hatId));
+		       console2.logString("HERE 42");
+		       console2.logBool(success);
+		       console2.logBytes(returndata);
 
         /* 
         * if function call succeeds with data of length == 64, then we know the contract exists 
@@ -1300,7 +1335,10 @@ contract Hats is IHats, ERC1155, Multicallable, HatsIdUtilities {
         override(ERC1155, IHats)
         returns (uint256 balance)
     {
+			console2.logUint(_hatId);
         Hat storage hat = _hats[_hatId];
+		console2.logString("ENd");
+		console2.logBytes(abi.encode(hat));
 
         balance = 0;
 
