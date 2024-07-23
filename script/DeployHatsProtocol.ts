@@ -22,17 +22,28 @@ async function main() {
 
   const contract = await deployer.loadArtifact(contractName);
   const constructorArgs = [
-		 "Hats Protocol v1", 
-		 "ipfs://bafkreiflezpk3kjz6zsv23pbvowtatnd5hmqfkdro33x5mh2azlhne3ah4", 
-	];
-  const hatsProtocol = await deployer.deploy(contract, constructorArgs, "create2", {"customData": {"salt": "0x0000000000000000000000000000000000000000000000000000000000004a75"}});
-  console.log("constructor args:" + hatsProtocol.interface.encodeDeploy(constructorArgs));
+    "Hats Protocol v1",
+    "ipfs://bafkreiflezpk3kjz6zsv23pbvowtatnd5hmqfkdro33x5mh2azlhne3ah4",
+  ];
+  const hatsProtocol = await deployer.deploy(
+    contract,
+    constructorArgs,
+    "create2",
+    {
+      customData: {
+        salt: "0x0000000000000000000000000000000000000000000000000000000000004a75",
+      },
+    }
+  );
+  console.log(
+    "constructor args:" + hatsProtocol.interface.encodeDeploy(constructorArgs)
+  );
 
   const contractAddress = await hatsProtocol.getAddress();
   console.log(`${contractName} was deployed to ${contractAddress}`);
 }
 
 main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+  console.error(error);
+  process.exitCode = 1;
+});
